@@ -5,49 +5,44 @@
 [ -z "$WS_PATH" ] && WS_PATH="/"
 [ -z "$PORT" ] && PORT=8080
 
-echo "🚀 Starting Sing-box (Serverless Mode)..."
+echo "🚀 Starting Xray-core..."
 echo "   UUID: $UUID"
 echo "   Port: $PORT"
+echo "   Path: $WS_PATH"
 
-# 生成配置文件
-# 关键修复：禁用 auto_detect_interface 和 auto_route
+# 生成 Xray 配置文件
 cat <<EOF > config.json
 {
   "log": {
-    "level": "info",
-    "timestamp": true
+    "loglevel": "warning"
   },
   "inbounds": [
     {
-      "type": "vless",
-      "tag": "vless-in",
-      "listen": "0.0.0.0",
-      "listen_port": $PORT,
-      "users": [
-        {
-          "uuid": "$UUID",
-          "name": "scaleway-user"
+      "port": $PORT,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "$UUID"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "$WS_PATH"
         }
-      ],
-      "transport": {
-        "type": "ws",
-        "path": "$WS_PATH",
-        "early_data_header_name": "Sec-WebSocket-Protocol"
       }
     }
   ],
   "outbounds": [
     {
-      "type": "direct",
-      "tag": "direct"
+      "protocol": "freedom"
     }
-  ],
-  "route": {
-    "auto_detect_interface": false,
-    "auto_route": false
-  }
+  ]
 }
 EOF
 
-# 启动
-exec sing-box run -c config.json
+# 启动 Xray
+exec xray -c config.json
