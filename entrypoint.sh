@@ -1,17 +1,16 @@
 #!/bin/sh
 
-# 如果没有设置 UUID，自动生成一个
-if [ -z "$UUID" ]; then
-  UUID="29c3d0c3-33e2-4545-9260-2b0200874e6f"
-  echo "No UUID provided, using default: $UUID"
-fi
+# 默认参数
+[ -z "$UUID" ] && UUID="29c3d0c3-33e2-4545-9260-2b0200874e6f"
+[ -z "$WS_PATH" ] && WS_PATH="/"
+[ -z "$PORT" ] && PORT=8080
 
-# 如果没有设置 WS_PATH，默认为 /
-if [ -z "$WS_PATH" ]; then
-  WS_PATH="/"
-fi
+echo "🚀 Starting Pure Sing-box..."
+echo "   Port: $PORT"
+echo "   UUID: $UUID"
+echo "   Path: $WS_PATH"
 
-# 生成 config.json
+# 生成配置文件
 cat <<EOF > config.json
 {
   "log": {
@@ -46,5 +45,6 @@ cat <<EOF > config.json
 }
 EOF
 
-echo "Starting Sing-box on port $PORT with UUID $UUID..."
+# 使用 exec 让 Sing-box 成为主进程 (PID 1)
+# 这样容器停止时，Sing-box 能收到信号并优雅退出
 exec sing-box run -c config.json
