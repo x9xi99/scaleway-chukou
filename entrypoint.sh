@@ -5,12 +5,12 @@
 [ -z "$WS_PATH" ] && WS_PATH="/"
 [ -z "$PORT" ] && PORT=8080
 
-echo "🚀 Starting Pure Sing-box..."
-echo "   Port: $PORT"
+echo "🚀 Starting Sing-box (Serverless Mode)..."
 echo "   UUID: $UUID"
-echo "   Path: $WS_PATH"
+echo "   Port: $PORT"
 
 # 生成配置文件
+# 关键修复：禁用 auto_detect_interface 和 auto_route
 cat <<EOF > config.json
 {
   "log": {
@@ -41,10 +41,13 @@ cat <<EOF > config.json
       "type": "direct",
       "tag": "direct"
     }
-  ]
+  ],
+  "route": {
+    "auto_detect_interface": false,
+    "auto_route": false
+  }
 }
 EOF
 
-# 使用 exec 让 Sing-box 成为主进程 (PID 1)
-# 这样容器停止时，Sing-box 能收到信号并优雅退出
+# 启动
 exec sing-box run -c config.json
